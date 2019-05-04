@@ -1,4 +1,7 @@
-;(in-package #:ecrepl)
+;;; (c) 2019 Daniel Kochmański
+;;; (l) BSD-2-Clause
+
+;;(in-package #:ecrepl)
 
 (defclass <abstract-token> ()
   ((start :initarg :start)

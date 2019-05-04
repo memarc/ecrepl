@@ -8,6 +8,10 @@ simple: expression is read and compiled and then object file is loaded
 in ECL's runtime like other FASLs. There are a few twists to this
 method for sake of convenience.
 
+All code in this repository is licensed under
+BSD-2-Clause. Dependencies (i.e ECL and Esrap) have their own
+licenses.
+
 * A joke that is too long and doesn't have a punchline (aka foreword)
 
 A few days ago I've created a semi-serious C REPL post on reddit

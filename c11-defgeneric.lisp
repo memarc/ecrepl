@@ -1,3 +1,6 @@
+;;; (c) 2019 Daniel Kochmański
+;;; (l) BSD-2-Clause
+
 (in-package #:ecrepl)
 
 ;; http://www.robertgamble.net/2012/01/c11-generic-selections.html

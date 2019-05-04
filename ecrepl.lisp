@@ -1,4 +1,5 @@
 ;;; (c) 2019 Daniel Kochmański
+;;; (l) BSD-2-Clause
 
 #-ecl (error "Moderately evil laugh.")
 

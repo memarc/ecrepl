@@ -1,3 +1,5 @@
+;;; (c) 2019 Daniel Kochmański
+;;; (l) BSD-2-Clause
 
 (in-package #:ecrepl)
 

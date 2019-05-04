@@ -1,3 +1,6 @@
+;;; (c) 2019 Daniel Kochmański
+;;; (l) BSD-2-Clause
+
 (in-package #:ecrepl)
 
 ;;; This partial form reader is by no means a conforming C parser. It
