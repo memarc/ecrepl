@@ -31,7 +31,9 @@ Moreover sources contain a lisp prototype for defining C generic
 functions, almost complete c18 syntax grammar in esrap (there is a few
 bits missing with regard preprocessing and parsing products are left
 at default) and of course ECREPL. Since I have other things to do I
-can't finish this module right now. I'm publishing it as is for now.
+can't finish this module right now. I'm publishing it as is for
+now. If you find it useful to your project please contributing the
+missing parts or supporting me on [[https://www.patreon.com/jackdaniel_kochmanski][patreon]].
 
 Files:
 - module-manager :: eval and includes
