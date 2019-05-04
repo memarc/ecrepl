@@ -26,14 +26,11 @@
 
 
 ;;; Packrat parser for C18 (notes)
-;;;
-;;; Esrap does not support left recursion, but here comes an articule
-;;; explaining how a packrat parser may support it:
-;;;
-;;;     http://www.cs.ucla.edu/~todd/research/pub.php?id=pepm08
-;;;
-;;; it would be a worthwhile project to implement that. I've manually
-;;; transformed left-recurrent definitions (rules end with *).
+
+;;; Esrap *does* support left recursion. I took old source code when
+;;; it didn't so I thought it can't – that lead to a situation where
+;;; I've manually transformed left-recurrent definitions. All such
+;;; rules start with *.
 
 
 ;;; A.1 Lexical grammar
