@@ -1,0 +1,157 @@
+
+#+TITLE: ECREPL
+#+AUTHOR: Daniel Kochmański
+#+DATE: [2019-04-27 Sat]
+
+ECREPL is an interactive REPL for C language. Method of work is
+simple: expression is read and compiled and then object file is loaded
+in ECL's runtime like other FASLs. There are a few twists to this
+method for sake of convenience.
+
+* A joke that is too long and doesn't have a punchline (aka foreword)
+
+A few days ago I've created a semi-serious C REPL post on reddit
+(using ECL facilities):
+https://www.reddit.com/r/lisp/comments/bgwtsh/fun_ecl_hack/. Given
+very positive feedback I've decided to extend it a little. It took a
+too long and it is already useful to me, so I'm suspending the project
+for the other day to finish. Missing features are:
+
+- proper C18 syntax reader to categorize statement (see below)
+- printer for cl_object expression (trivial, just type ecl_print(foo, ECL_T)
+- command processor (no ~:help~, ~:dump source~ or ~:show header~
+- no module manager (unloading objects, curating includes)
+- no extension syntax processor (~@defgeneric~)
+
+That said I find it still very useful. I can run a REPL and see
+returned values, define C functions and call them later (declarations
+are inferred) and much more.
+
+Moreover sources contain a lisp prototype for defining C generic
+functions, almost complete c18 syntax grammar in esrap (there is a few
+bits missing with regard preprocessing and parsing products are left
+at default) and of course ECREPL. Since I have other things to do I
+can't finish this module right now. I'm publishing it as is for now.
+
+Files:
+- module-manager :: eval and includes
+- c11-defgeneric :: contains generic "function" assembler for C
+- printx :: printx gf definition
+- syntax-reading :: naive C parser (works only for basic cases)
+- ecrepl :: main file loading others and defining the loop
+- c18-syntax-reader :: *UNUSED* almost complete C18 grammar (esrap)
+- readme :: this file
+
+* Usage
+
+  #+BEGIN_EXAMPLE
+  rlwrap ecl --load ecrepl.lisp --eval '(in-package ecrepl)' --eval '(crepl)' --eval '(ext:quit)'
+  [ecrepl]% 3+4;
+  (int) 7
+  [ecrepl]% for(int i=14; i<20; i++) printf("*");
+  ******
+  [ecrepl]% int foobar () { return 42; }
+
+  [ecrepl]% foobar();
+
+  [ecrepl]% printx(foobar);
+  printx: no applicable method.
+
+  [ecrepl]% printx(foobar());
+  (int) 42
+
+  [ecrepl]% int x = foobar ();
+  Definition "int x = foobar ();" is invalid. 
+  Inferred header: "extern int x ;".
+  [ecrepl]% { int x = foobar(); printx(x); }
+  (int) 42
+  [ecrepl]% generic_test((float)3.14, (char)'c');
+  [float x char] 99 -221700096
+  ^D
+  #+END_EXAMPLE
+
+* Reading
+
+For our REPL purpose expressions have the following categories:
+
+- preprocessor directives :: they are put in a header file for each
+     succeeding REPL statement.
+  #+BEGIN_EXAMPLE
+    #define foo(x) \
+       (x*x)
+    #include <foobar.h>
+  #+END_EXAMPLE
+- declarations :: they are put in a header file for each succeeding
+                  REPL statement.
+  #+BEGIN_EXAMPLE
+    extern void foo(int a);
+    extern int xxx;   
+  #+END_EXAMPLE
+- definitions :: we try to extract from them declarations to put in
+                 the header and then we compile and load a code with
+                 them.
+  #+BEGIN_EXAMPLE
+    int x = 42;
+    void fun () {
+        printf("hi\n");
+    }
+  #+END_EXAMPLE
+- code blocks :: code blocks are executed just for side
+                 effects. cl_object may be returned from them
+                 (defaults to ECL_NIL). Result is remembered as the
+                 last value.
+  #+BEGIN_EXAMPLE
+    { float foo = 3.14;
+       do_something(foo); }
+     for (int i = 0; i < 10; i++)
+         global++;
+     if (foobar()) {
+         printf("foobar");
+     }
+     printf("foobar");
+  #+END_EXAMPLE
+- rvalues :: they are printed when possible and assigned as the "last" value
+   ~'a', 3.14, &xxx, a[42], "foobar", doit(), printf("xxx") /* ! */, i=42~
+- ECREPL commands :: REPL command directives
+   ~:help, :load, :v[0]~
+- Custom ECREPL extensions to C syntax :: i.e generic function
+     definition.
+   #+BEGIN_EXAMPLE
+     @generic foo (a, b) {
+         @method void (int a, float b) {
+           printf("xxx\n");
+         }
+
+         @method void (@unknown a, double b)
+             printf("yyy\n");
+     }
+   #+END_EXAMPLE
+
+* Evaluating
+
+When declaration is read ECL first compiles it to see if compilation
+finishes succesfully. If it does then it is stored on a list of all
+declarations which are included in all future expressions.
+
+Each definition is compiled and loaded into the runtime. That means
+that defined functions and variables are available in subsequent REPL
+calls. Standard linker rules apply here.
+
+Code blocks are called for side effects. They are put in a body of
+function which will be run after successful compilation. They may be
+put in brackets for multiline.
+
+Rvalues are called for their returned value. This feature is
+experimental because there is no easy way to recognize returned
+statement type in C. If recognition is not possible rvalues are
+treated as code blocks.
+
+Commands are REPL directives (i.e not C statements). Type ~:help~ to
+see all available commands. Type ~:help commands~ to see a particular
+command description.
+
+* Printing
+
+Rvalue printer depends on C11 feature _Generic which allows to
+dispatch depending on the variable type. For code blocks job is
+simpler because there is nothing to print.
